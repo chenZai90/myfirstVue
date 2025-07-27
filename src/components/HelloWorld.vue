@@ -1,15 +1,7 @@
 <script setup>
-import { reactive , ref , computed } from 'vue'
-
-// 响应式对象（适合对象、数组等）
-const counter = reactive({ count: 0 })
-
-// 响应式基本类型（适合字符串、数字、布尔值）
-const message = ref('Hello World!')
-
-console.log(message.value)
-message.value = '修改'
-
+import { reactive , ref , computed , watch } from 'vue'
+import refAndReactive from '@/vueDemo/refAndReactive.vue'
+import getAndSetProperty from '@/vueDemo/getAndSetProperty.vue'
 
 // 定义 props
 const props = defineProps({
@@ -20,31 +12,22 @@ const props = defineProps({
 })
 
 
-// 定义两个响应式变量，分别代表姓和名
-const firstName = ref('Tom')
-const lastName = ref('Hanks')
-
-// 创建一个计算属性 fullName，动态拼接姓和名
-const fullName = computed(() => {
-  return `${firstName.value} ${lastName.value}`
-})
-
-
-
 </script>
 
 <template>
-  <h1>{{ message }}</h1>
+  <!-- <h1>{{ message }}</h1>
+  <br></br>
   <p>当前计数是：{{ counter.count }}</p>
   <br></br>
   <p>当前用户的全名是：{{ fullName }}</p>
-
-
+  <br></br>
+  <p>取了属性：{{ state.count }}</p>
+  <br></br>
+  <p>读取了属性：{{ state.count++ }}</p>
+   <br></br> -->
+ 
 
   <!-- <h1>{{ message.split('').reverse().join('') }}</h1> -->
-
-
-
   <!-- <div class="greetings">
     <h1 class="green">{{ props.msg }}</h1>
     <h3>

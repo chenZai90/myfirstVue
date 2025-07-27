@@ -1,16 +1,17 @@
 # myfirstVue
 
-This template should help get you started developing with Vue 3 in Vite.
+这个模板应该有助于你开始在Vite中使用Vue 3进行开发。
+技术博客：[稀土掘金](https://juejin.cn/user/2717648476705773/columns)
 
-## Recommended IDE Setup
+## 推荐的IDE设置
 
 [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
-## Customize configuration
+## 相关配置
 
 See [Vite Configuration Reference](https://vite.dev/config/).
 
-## Project Setup
+## 项目相关配置
 
 ```sh
 npm install
@@ -22,8 +23,3 @@ npm install
 npm run dev
 ```
 
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
