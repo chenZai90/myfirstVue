@@ -4,7 +4,6 @@ import DocumentationIcon from './icons/IconDocumentation.vue'
 import ToolingIcon from './icons/IconTooling.vue'
 import EcosystemIcon from './icons/IconEcosystem.vue'
 import CommunityIcon from './icons/IconCommunity.vue'
-x
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 </script>
 
@@ -90,4 +89,9 @@ const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
     us by
     <a href="https://vuejs.org/sponsor/" target="_blank" rel="noopener">becoming a sponsor</a>.
   </WelcomeItem>
+
+  <button @click="awesome = !awesome">Toggle</button>
+<h1 v-if="awesome">Vue is awesome!</h1>
+<h1 v-else>Oh no 😢</h1>
+
 </template>

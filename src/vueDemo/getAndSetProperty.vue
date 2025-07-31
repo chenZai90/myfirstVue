@@ -50,6 +50,6 @@ watch(count, (newVal, oldVal) => {
   <br></br>
   <p>读取了属性：{{ state.count++ }}</p>
    <br></br> 
-
+<button @click="count++">{{ '增加数字为：' + count }}</button>
 
 </template>

@@ -12,30 +12,28 @@ const props = defineProps({
 })
 
 
+
+
+
+
+
 </script>
 
 <template>
-  <!-- <h1>{{ message }}</h1>
-  <br></br>
-  <p>当前计数是：{{ counter.count }}</p>
-  <br></br>
-  <p>当前用户的全名是：{{ fullName }}</p>
-  <br></br>
-  <p>取了属性：{{ state.count }}</p>
-  <br></br>
-  <p>读取了属性：{{ state.count++ }}</p>
-   <br></br> -->
- 
 
-  <!-- <h1>{{ message.split('').reverse().join('') }}</h1> -->
-  <!-- <div class="greetings">
+
+  
+  <<div class="greetings">
     <h1 class="green">{{ props.msg }}</h1>
     <h3>
       You’ve successfully created a project with
       <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> +
       <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
     </h3>
-  </div> -->
+  </div> 
+
+
+
 </template>
 
 <style scoped>
