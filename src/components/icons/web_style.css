@@ -1,0 +1,68 @@
+/* web_style.css - 用于 WKWebView 的 HTML 内容样式 */
+
+body {
+    margin: 0;
+    padding: 16px;
+    background-color: #FFFFFF; /* 背景色 */
+    color: #333333; /* 文字颜色 */
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+    line-height: 1.8;
+    font-size: 16px; /* 字体大小 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.content-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+p {
+    text-indent: 2em;
+    text-align: justify;
+    margin: 0.8em 0;
+    padding: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1.2em auto;
+    border-radius: 8px;
+    border: 1px solid #DDDDDD; /* 边框颜色 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+img:active {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+}
+
+a {
+    color: #1E90FF; /* 链接颜色 */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #E0E0E0;
+    }
+    img {
+        border-color: #333333;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+    .content-container {
+        padding: 0 8px;
+    }
+}
