@@ -11,7 +11,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    vueDevTools(),
+    // vueDevTools(), // 临时禁用以解决模板解析问题
   ],
   resolve: {
     alias: {
