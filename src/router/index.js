@@ -10,6 +10,7 @@ import FormsDemo from '../views/FormsDemo.vue'
 import ComponentsDemo from '../views/ComponentsDemo.vue'
 import LifecycleDemo from '../views/LifecycleDemo.vue'
 import TemplateDemo from '../views/TemplateDemo.vue'
+import TestDemo from '../views/TestDemo.vue'
 
 // 路由配置
 const routes = [
@@ -78,6 +79,12 @@ const routes = [
     name: 'TemplateDemo',
     component: TemplateDemo,
     meta: { title: '模板语法 - Vue3学习项目' }
+  },
+  {
+    path: '/test',
+    name: 'TestDemo',
+    component: TestDemo,
+    meta: { title: 'Demo Title 测试 - Vue3学习项目' }
   }
 ]
 

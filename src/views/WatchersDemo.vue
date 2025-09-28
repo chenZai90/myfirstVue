@@ -21,11 +21,7 @@
           { name: '回调函数', description: '数据变化时执行的函数，接收新值和旧值' },
           { name: '副作用', description: '数据变化时需要执行的操作，如网络请求、日志记录等' }
         ]"
-        :code-explanation="[
-          { code: 'watch(source, callback)', explanation: '基础侦听器语法，侦听数据源变化' },
-          { code: 'watch(count, (newVal, oldVal) => {})', explanation: '侦听ref，回调接收新值和旧值' },
-          { code: 'watch(() => obj.prop, callback)', explanation: '侦听对象属性，使用getter函数' }
-        ]"
+        :code-explanation="basicWatchCodeExplanation"
         :notes="[
           '侦听器默认是懒执行的，只有数据变化时才执行',
           '可以侦听ref、reactive、getter函数等多种数据源',
@@ -60,11 +56,7 @@
           { name: 'getter侦听', description: '使用函数返回要侦听的值' },
           { name: '多源侦听', description: '同时侦听多个数据源' }
         ]"
-        :code-explanation="[
-          { code: 'watch(refValue, callback)', explanation: '侦听ref值的变化' },
-          { code: 'watch(() => state.prop, callback)', explanation: '侦听reactive对象的属性' },
-          { code: 'watch([source1, source2], callback)', explanation: '侦听多个数据源' }
-        ]"
+        :code-explanation="watchSourcesCodeExplanation"
         :notes="[
           'reactive对象需要使用getter函数来侦听特定属性',
           '侦听整个reactive对象会深度侦听所有属性',
@@ -95,11 +87,7 @@
           { name: '性能考虑', description: '深度侦听会遍历所有嵌套属性，性能开销较大' },
           { name: '应用场景', description: '适用于复杂对象、数组等嵌套数据结构' }
         ]"
-        :code-explanation="[
-          { code: 'watch(obj, callback, { deep: true })', explanation: '启用深度侦听' },
-          { code: 'watch(() => obj.nested.prop, callback)', explanation: '侦听特定嵌套属性' },
-          { code: 'watchEffect(() => { console.log(obj.nested.prop) })', explanation: 'watchEffect自动追踪依赖' }
-        ]"
+        :code-explanation="deepWatchCodeExplanation"
         :notes="[
           '深度侦听会检测对象内部所有嵌套属性的变化',
           '对于大型对象，深度侦听可能影响性能',
@@ -131,11 +119,7 @@
           { name: '立即执行', description: '创建时立即执行一次，不像watch的懒执行' },
           { name: '清理函数', description: '可以返回清理函数，在重新执行前或组件卸载时调用' }
         ]"
-        :code-explanation="[
-          { code: 'watchEffect(() => { console.log(count.value) })', explanation: 'watchEffect自动追踪count依赖' },
-          { code: 'const stop = watchEffect(callback)', explanation: '返回停止函数，可手动停止侦听' },
-          { code: 'watchEffect((onCleanup) => { onCleanup(() => {}) })', explanation: '使用清理函数' }
-        ]"
+        :code-explanation="watchEffectCodeExplanation"
         :notes="[
           'watchEffect会在创建时立即执行一次',
           '自动追踪函数内使用的所有响应式数据',
@@ -167,11 +151,7 @@
           { name: 'flush', description: '控制回调的刷新时机' },
           { name: 'onTrack/onTrigger', description: '调试选项，追踪依赖变化' }
         ]"
-        :code-explanation='[
-          { code: "watch(source, callback, { immediate: true })", explanation: "创建时立即执行回调" },
-          { code: "watch(source, callback, { deep: true })", explanation: "启用深度侦听" },
-          { code: "watch(source, callback, { flush: \"post\" })", explanation: "在DOM更新后执行回调" }
-        ]'
+        :code-explanation="watchOptionsCodeExplanation"
         :notes="[
           'immediate: true 使侦听器在创建时立即执行',
           'flush控制回调执行时机：pre(默认)、post、sync',
@@ -202,11 +182,7 @@
           { name: '手动停止', description: '调用返回的停止函数手动停止' },
           { name: '条件停止', description: '根据条件动态停止侦听器' }
         ]"
-        :code-explanation="[
-          { code: 'const stop = watch(source, callback)', explanation: 'watch返回停止函数' },
-          { code: 'stop()', explanation: '调用停止函数停止侦听' },
-          { code: 'if (condition) stop()', explanation: '条件性停止侦听器' }
-        ]"
+        :code-explanation="stopWatcherCodeExplanation"
         :notes="[
           '在setup()中创建的侦听器会在组件卸载时自动停止',
           '在异步回调中创建的侦听器需要手动停止',
@@ -227,11 +203,11 @@
   </div>
 </template>
 
-<script setup>
-import { defineComponent, ref, reactive, watch, watchEffect, nextTick } from 'vue'
-import CodeBlock from '@/components/CodeDemo/CodeBlock.vue'
-import DemoRunner from '@/components/CodeDemo/DemoRunner.vue'
+<script>
+import { defineComponent, ref, reactive, watch, watchEffect, nextTick, computed } from 'vue'
 import CommentBox from '@/components/CodeDemo/CommentBox.vue'
+import DemoRunner from '@/components/CodeDemo/DemoRunner.vue'
+import CodeBlock from '@/components/CodeDemo/CodeBlock.vue'
 
 // 基础侦听器示例组件
 const BasicWatchDemo = defineComponent({
@@ -424,44 +400,49 @@ const WatchSourcesDemo = defineComponent({
 // 深度侦听示例组件
 const DeepWatchDemo = defineComponent({
   setup() {
-    // 复杂的嵌套reactive对象，用于演示深度侦听
+    // 创建复杂的嵌套对象用于演示深度侦听
     const user = reactive({
-      profile: {                    // 用户基本信息
-        name: '张三',
-        age: 25,
-        contact: {                  // 嵌套的联系方式对象
-          email: 'zhangsan@example.com',
-          phone: '138-0000-0000'
+      profile: {
+        name: '张三',              // 用户姓名
+        contact: {
+          email: 'zhangsan@example.com',  // 邮箱地址
+          phone: '138-0000-0000'          // 电话号码
         }
       },
-      preferences: {              // 用户偏好设置
-        theme: 'light',
-        language: 'zh-CN'
+      preferences: {
+        theme: 'light',            // 主题设置
+        language: 'zh-CN'          // 语言设置
       }
     })
     
-    const logs = ref([])          // 侦听器日志记录
+    const logs = ref([])          // 日志记录数组
 
-    // 浅层侦听（不会检测嵌套变化）
-    // 只有当profile对象本身被替换时才会触发
+    // 浅层侦听 - 只侦听对象引用变化
+    // 只有当user.profile被重新赋值时才会触发
     watch(() => user.profile, (newVal, oldVal) => {
-      logs.value.push('浅层侦听: profile对象引用变化')
+      logs.value.push('profile对象引用变化（浅层侦听）')
     })
 
-    // 深度侦听（检测所有嵌套变化）
-    // 使用deep: true选项，可以检测对象内部任何属性的变化
+    // 深度侦听 - 侦听对象内部所有属性变化
+    // 开启deep选项后，对象内部任何属性变化都会触发
     watch(() => user.profile, (newVal, oldVal) => {
-      logs.value.push('深度侦听: profile内部属性变化')
+      logs.value.push('profile内部属性变化（深度侦听）')
     }, { deep: true })
 
-    // 侦听特定嵌套属性 - 精确侦听
-    // 只侦听特定的深层属性，性能更好
+    // 侦听特定嵌套属性（推荐方式）
+    // 直接侦听具体的属性，性能更好，更精确
     watch(() => user.profile.contact.email, (newVal, oldVal) => {
-      logs.value.push(`email侦听: ${oldVal} -> ${newVal}`)
+      logs.value.push(`email变化: ${oldVal} -> ${newVal}`)
     })
 
+    // 侦听整个对象的深度变化
+    // 侦听user对象的任何深层属性变化
+    watch(user, (newVal, oldVal) => {
+      logs.value.push('user对象深度变化')
+    }, { deep: true })
+
     function updateName() {
-      const names = ['张三', '李四', '王五']
+      const names = ['张三', '李四', '王五', '赵六']
       const current = names.indexOf(user.profile.name)
       user.profile.name = names[(current + 1) % names.length]
     }
@@ -476,17 +457,6 @@ const DeepWatchDemo = defineComponent({
       user.preferences.theme = user.preferences.theme === 'light' ? 'dark' : 'light'
     }
 
-    function replaceProfile() {
-      user.profile = {
-        name: '新用户',
-        age: 30,
-        contact: {
-          email: 'newuser@example.com',
-          phone: '139-1111-1111'
-        }
-      }
-    }
-
     function clearLogs() {
       logs.value = []
     }
@@ -497,26 +467,22 @@ const DeepWatchDemo = defineComponent({
       updateName,
       updateEmail,
       updateTheme,
-      replaceProfile,
       clearLogs
     }
   },
   template: `
     <div class="demo-item">
       <h3>深度侦听示例</h3>
-      <div style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
-        <h4>用户数据:</h4>
+      <div style="margin: 1rem 0;">
+        <h4>用户信息:</h4>
         <p><strong>姓名:</strong> {{ user.profile.name }}</p>
-        <p><strong>年龄:</strong> {{ user.profile.age }}</p>
         <p><strong>邮箱:</strong> {{ user.profile.contact.email }}</p>
-        <p><strong>电话:</strong> {{ user.profile.contact.phone }}</p>
         <p><strong>主题:</strong> {{ user.preferences.theme }}</p>
       </div>
       <div style="margin: 1rem 0;">
         <button @click="updateName">更新姓名</button>
         <button @click="updateEmail">更新邮箱</button>
         <button @click="updateTheme">切换主题</button>
-        <button @click="replaceProfile">替换Profile</button>
         <button @click="clearLogs">清空日志</button>
       </div>
       <div style="margin: 1rem 0;">
@@ -529,7 +495,7 @@ const DeepWatchDemo = defineComponent({
         </div>
       </div>
       <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-        💡 观察不同侦听器对嵌套属性变化的响应
+        💡 观察不同侦听方式的触发情况
       </p>
     </div>
   `
@@ -541,42 +507,47 @@ const WatchEffectDemo = defineComponent({
     // 响应式数据定义
     const count = ref(0)          // 计数器
     const name = ref('张三')       // 姓名
-    const enabled = ref(true)     // 启用状态控制
-    const logs = ref([])          // 普通日志
-    const effectLogs = ref([])    // watchEffect专用日志
+    const enabled = ref(true)     // 启用状态
+    const logs = ref([])         // 日志记录
 
-    // watchEffect - 自动追踪依赖
-    // 立即执行函数，并自动追踪函数内使用的响应式数据
-    // 当任何依赖发生变化时，函数会重新执行
+    // 基础watchEffect - 自动追踪依赖
+    // watchEffect会自动追踪函数内使用的所有响应式数据
+    // 无需手动指定依赖，任何依赖变化都会重新执行
+    watchEffect(() => {
+      logs.value.push(`watchEffect执行: count=${count.value}, name=${name.value}`)
+    })
+
+    // 条件性watchEffect
+    // 可以在watchEffect内部使用条件逻辑
     watchEffect(() => {
       if (enabled.value) {
-        effectLogs.value.push(`watchEffect执行: count=${count.value}, name=${name.value}`)
+        logs.value.push(`条件watchEffect: 当前计数=${count.value}`)
       }
+      // 追踪enabled和count两个依赖
+      // enabled为false时不会输出，但仍会追踪count的变化
     })
 
-    // watchEffect with cleanup - 带清理函数的用法
-    // onCleanup函数用于注册清理逻辑，在重新执行前或组件卸载时调用
+    // 带清理函数的watchEffect
+    // 用于清理副作用，如定时器、事件监听器等
+    let timerId = 0
     watchEffect((onCleanup) => {
-      if (enabled.value) {
-        // 创建定时器
-        const timer = setTimeout(() => {
-          logs.value.push(`定时器执行: count=${count.value}`)
-        }, 1000)
-        
-        // 注册清理函数，清理定时器避免内存泄漏
-        onCleanup(() => {
-          clearTimeout(timer)
-          logs.value.push('清理定时器')
-        })
-      }
+      const timer = setTimeout(() => {
+        logs.value.push(`定时器${++timerId}执行`)
+      }, 1000)
+      
+      // 清理函数：在重新执行前或组件卸载时调用
+      onCleanup(() => {
+        clearTimeout(timer)
+        logs.value.push(`清理定时器${timerId}`)
+      })
     })
 
-    // 可停止的watchEffect - 手动控制生命周期
+    // 可停止的watchEffect
     // watchEffect返回一个停止函数，可以手动停止侦听
     const stopEffect = watchEffect(() => {
       if (count.value > 5) {
-        logs.value.push('计数超过5，自动停止watchEffect')
-        stopEffect()  // 调用停止函数
+        logs.value.push('计数超过5，准备停止watchEffect')
+        // 可以在这里调用stopEffect()来停止自己
       }
     })
 
@@ -585,7 +556,7 @@ const WatchEffectDemo = defineComponent({
     }
 
     function updateName() {
-      const names = ['张三', '李四', '王五']
+      const names = ['张三', '李四', '王五', '赵六']
       const current = names.indexOf(name.value)
       name.value = names[(current + 1) % names.length]
     }
@@ -594,9 +565,13 @@ const WatchEffectDemo = defineComponent({
       enabled.value = !enabled.value
     }
 
+    function stopWatchEffect() {
+      stopEffect()
+      logs.value.push('手动停止watchEffect')
+    }
+
     function clearLogs() {
       logs.value = []
-      effectLogs.value = []
     }
 
     return {
@@ -604,10 +579,10 @@ const WatchEffectDemo = defineComponent({
       name,
       enabled,
       logs,
-      effectLogs,
       increment,
       updateName,
       toggleEnabled,
+      stopWatchEffect,
       clearLogs
     }
   },
@@ -621,27 +596,17 @@ const WatchEffectDemo = defineComponent({
       </div>
       <div style="margin: 1rem 0;">
         <button @click="increment">增加计数</button>
-        <button @click="updateName">更新姓名</button>
+        <button @click="updateName">更改姓名</button>
         <button @click="toggleEnabled">切换启用状态</button>
+        <button @click="stopWatchEffect">停止watchEffect</button>
         <button @click="clearLogs">清空日志</button>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
-        <div>
-          <h4>watchEffect日志:</h4>
-          <div style="max-height: 150px; overflow-y: auto; padding: 1rem; background: #e3f2fd; border-radius: 4px;">
-            <div v-if="effectLogs.length === 0" style="color: #666; font-style: italic;">暂无日志</div>
-            <div v-for="(log, index) in effectLogs" :key="index" style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">
-              {{ log }}
-            </div>
-          </div>
-        </div>
-        <div>
-          <h4>其他日志:</h4>
-          <div style="max-height: 150px; overflow-y: auto; padding: 1rem; background: #f3e5f5; border-radius: 4px;">
-            <div v-if="logs.length === 0" style="color: #666; font-style: italic;">暂无日志</div>
-            <div v-for="(log, index) in logs" :key="index" style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">
-              {{ log }}
-            </div>
+      <div style="margin: 1rem 0;">
+        <h4>watchEffect日志:</h4>
+        <div style="max-height: 200px; overflow-y: auto; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+          <div v-if="logs.length === 0" style="color: #666; font-style: italic;">暂无日志</div>
+          <div v-for="(log, index) in logs" :key="index" style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">
+            {{ log }}
           </div>
         </div>
       </div>
@@ -652,34 +617,51 @@ const WatchEffectDemo = defineComponent({
   `
 })
 
-// 侦听器选项示例
+// 侦听器选项示例组件
 const WatchOptionsDemo = defineComponent({
   setup() {
-    const count = ref(0)
-    const user = reactive({ name: '张三', age: 25 })
-    const logs = ref([])
+    // 响应式数据定义
+    const count = ref(0)         // 计数器
+    const user = reactive({      // 用户对象
+      name: '张三',
+      profile: {
+        age: 25,
+        city: '北京'
+      }
+    })
+    const logs = ref([])        // 日志记录
 
-    // immediate选项 - 立即执行
+    // 1. immediate选项 - 立即执行
+    // 设置immediate: true使侦听器在创建时立即执行一次
     watch(count, (newVal, oldVal) => {
       logs.value.push(`immediate侦听: ${oldVal} -> ${newVal}`)
-    }, { immediate: true })
+    }, { immediate: true })  // 创建时立即执行
 
-    // flush选项 - 控制执行时机
+    // 2. deep选项 - 深度侦听
+    // 开启deep选项来侦听对象内部属性的变化
+    watch(() => user, (newVal, oldVal) => {
+      logs.value.push('deep侦听: user对象内部变化')
+    }, { deep: true })  // 深度侦听对象内部变化
+
+    // 3. flush选项 - 控制回调执行时机
+    // flush: 'post' 表示在DOM更新后执行回调
     watch(count, (newVal, oldVal) => {
       logs.value.push(`post flush: ${oldVal} -> ${newVal} (DOM更新后)`)
-    }, { flush: 'post' })
+    }, { flush: 'post' })  // DOM更新后执行
 
-    // deep选项 - 深度侦听
-    watch(user, (newVal, oldVal) => {
-      logs.value.push('deep侦听: user对象内部变化')
-    }, { deep: true })
-
-    // 组合选项
-    watch(() => user.name, (newVal, oldVal) => {
-      logs.value.push(`组合选项: ${oldVal} -> ${newVal}`)
-    }, { 
-      immediate: true,
-      flush: 'post'
+    // 4. 调试选项（开发环境）
+    // onTrack和onTrigger用于调试侦听器的依赖追踪过程
+    watch(count, (newVal, oldVal) => {
+      logs.value.push(`调试侦听: ${oldVal} -> ${newVal}`)
+    }, {
+      onTrack(e) {
+        console.log('追踪到依赖:', e)
+        logs.value.push('追踪到依赖变化')
+      },
+      onTrigger(e) {
+        console.log('依赖触发:', e)
+        logs.value.push('依赖触发侦听器')
+      }
     })
 
     function increment() {
@@ -688,7 +670,7 @@ const WatchOptionsDemo = defineComponent({
 
     function updateUser() {
       user.name = user.name === '张三' ? '李四' : '张三'
-      user.age = Math.floor(Math.random() * 30) + 20
+      user.profile.age = Math.floor(Math.random() * 30) + 20
     }
 
     function clearLogs() {
@@ -709,7 +691,7 @@ const WatchOptionsDemo = defineComponent({
       <h3>侦听器选项示例</h3>
       <div style="margin: 1rem 0;">
         <p><strong>计数:</strong> {{ count }}</p>
-        <p><strong>用户:</strong> {{ user.name }}, {{ user.age }}岁</p>
+        <p><strong>用户:</strong> {{ user.name }}, {{ user.profile.age }}岁</p>
       </div>
       <div style="margin: 1rem 0;">
         <button @click="increment">增加计数</button>
@@ -726,72 +708,73 @@ const WatchOptionsDemo = defineComponent({
         </div>
       </div>
       <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-        💡 注意观察不同选项对侦听器行为的影响
+        💡 观察不同选项对侦听器行为的影响
       </p>
     </div>
   `
 })
 
-// 停止侦听器示例
+// 停止侦听器示例组件
 const StopWatcherDemo = defineComponent({
   setup() {
-    const count = ref(0)
-    const logs = ref([])
-    const watchers = ref([])
+    // 响应式数据定义
+    const count = ref(0)         // 计数器
+    const logs = ref([])        // 日志记录
+    let watchStopped = false    // 标记侦听器是否已停止
+    let effectStopped = false   // 标记watchEffect是否已停止
 
-    function createWatcher() {
-      const watcherId = Date.now()
-      const stop = watch(count, (newVal, oldVal) => {
-        logs.value.push(`侦听器${watcherId}: ${oldVal} -> ${newVal}`)
-      })
-      
-      watchers.value.push({ id: watcherId, stop, active: true })
-      logs.value.push(`创建侦听器${watcherId}`)
-    }
-
-    function stopWatcher(watcherId) {
-      const watcher = watchers.value.find(w => w.id === watcherId)
-      if (watcher && watcher.active) {
-        watcher.stop()
-        watcher.active = false
-        logs.value.push(`停止侦听器${watcherId}`)
-      }
-    }
-
-    function stopAllWatchers() {
-      watchers.value.forEach(watcher => {
-        if (watcher.active) {
-          watcher.stop()
-          watcher.active = false
+    // watch返回停止函数
+    // 可以调用这个函数来手动停止侦听器
+    const stopWatch = watch(count, (newVal, oldVal) => {
+      if (!watchStopped) {
+        logs.value.push(`watch侦听: ${oldVal} -> ${newVal}`)
+        // 当计数达到10时自动停止
+        if (newVal >= 10) {
+          logs.value.push('计数达到10，自动停止watch')
+          stopWatch()
+          watchStopped = true
         }
-      })
-      logs.value.push('停止所有侦听器')
-    }
+      }
+    })
+
+    // watchEffect也返回停止函数
+    // 同样可以手动停止watchEffect
+    const stopEffect = watchEffect(() => {
+      if (!effectStopped) {
+        logs.value.push(`watchEffect执行: 当前计数=${count.value}`)
+      }
+    })
 
     function increment() {
       count.value++
+    }
+
+    function stopWatchManually() {
+      if (!watchStopped) {
+        stopWatch()
+        watchStopped = true
+        logs.value.push('手动停止watch侦听器')
+      }
+    }
+
+    function stopEffectManually() {
+      if (!effectStopped) {
+        stopEffect()
+        effectStopped = true
+        logs.value.push('手动停止watchEffect')
+      }
     }
 
     function clearLogs() {
       logs.value = []
     }
 
-    // 自动停止的侦听器
-    const autoStop = watch(count, (newVal) => {
-      if (newVal >= 10) {
-        logs.value.push('计数达到10，自动停止侦听器')
-        autoStop()
-      }
-    })
-
     return {
       count,
       logs,
-      watchers,
-      createWatcher,
-      stopWatcher,
-      stopAllWatchers,
       increment,
+      stopWatchManually,
+      stopEffectManually,
       clearLogs
     }
   },
@@ -800,29 +783,12 @@ const StopWatcherDemo = defineComponent({
       <h3>停止侦听器示例</h3>
       <div style="margin: 1rem 0;">
         <p><strong>计数:</strong> {{ count }}</p>
-        <p><strong>活跃侦听器:</strong> {{ watchers.filter(w => w.active).length }}个</p>
       </div>
       <div style="margin: 1rem 0;">
-        <button @click="createWatcher">创建侦听器</button>
         <button @click="increment">增加计数</button>
-        <button @click="stopAllWatchers">停止所有侦听器</button>
+        <button @click="stopWatchManually">停止Watch</button>
+        <button @click="stopEffectManually">停止WatchEffect</button>
         <button @click="clearLogs">清空日志</button>
-      </div>
-      <div style="margin: 1rem 0;" v-if="watchers.length > 0">
-        <h4>侦听器列表:</h4>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-          <div v-for="watcher in watchers" :key="watcher.id" 
-               style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white;">
-            <span>{{ watcher.id }}</span>
-            <span :style="{ color: watcher.active ? '#4caf50' : '#f44336', marginLeft: '0.5rem' }">
-              {{ watcher.active ? '活跃' : '已停止' }}
-            </span>
-            <button v-if="watcher.active" @click="stopWatcher(watcher.id)" 
-                    style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
-              停止
-            </button>
-          </div>
-        </div>
       </div>
       <div style="margin: 1rem 0;">
         <h4>日志:</h4>
@@ -840,7 +806,7 @@ const StopWatcherDemo = defineComponent({
   `
 })
 
-// 代码示例
+// 代码示例字符串
 const basicWatchCode = `// 基础侦听器用法
 import { ref, watch } from 'vue'
 
@@ -1021,67 +987,41 @@ watchEffect((onCleanup) => {
 // 4. 可停止的watchEffect
 // watchEffect返回一个停止函数，可以手动停止侦听
 const stop = watchEffect(() => {
-  if (count.value > 10) {
-    console.log('计数超过10，停止监听')
-    stop() // 在回调内部停止自己
-  }
+  console.log(\`计数: \${count.value}\`)
 })
 
-// 5. 手动停止
-// 也可以在其他地方调用stop函数
-// stop()`
+// 手动停止
+stop()`
 
 const watchOptionsCode = `// 侦听器选项
 import { ref, reactive, watch } from 'vue'
 
-// 创建响应式数据
 const count = ref(0)
 const user = reactive({ name: '张三', age: 25 })
 
 // 1. immediate选项 - 立即执行
-// 设置immediate为true时，侦听器会在创建时立即执行一次
+// 创建侦听器时立即执行一次回调
 watch(count, (newVal, oldVal) => {
-  console.log(\`立即执行: \${oldVal} -> \${newVal}\`)
-  // 第一次执行时oldVal为undefined
-}, { immediate: true })
+  console.log(\`count: \${oldVal} -> \${newVal}\`)
+}, { immediate: true })  // 立即执行
 
 // 2. deep选项 - 深度侦听
-// 对于对象类型，开启deep选项可以侦听内部属性变化
+// 侦听对象内部属性的变化
 watch(user, (newVal, oldVal) => {
-  console.log('user对象深度变化')
-  // user.name或user.age变化都会触发
-}, { deep: true })
+  console.log('user对象变化')
+}, { deep: true })  // 深度侦听
 
 // 3. flush选项 - 控制执行时机
-// 'pre': 在组件更新前执行（默认值）
-watch(count, (newVal, oldVal) => {
-  console.log('DOM更新前执行')
-  // 在DOM更新前执行，可以访问更新前的DOM状态
-}, { flush: 'pre' }) // 默认值
-
-// 'post': 在组件更新后执行
-watch(count, (newVal, oldVal) => {
-  console.log('DOM更新后执行')
-  // 在DOM更新后执行，可以访问更新后的DOM状态
-}, { flush: 'post' })
-
+// 'pre': 组件更新前执行（默认）
+// 'post': 组件更新后执行
 // 'sync': 同步执行
 watch(count, (newVal, oldVal) => {
-  console.log('同步执行')
-  // 数据变化时立即同步执行，不等待Vue的更新周期
-}, { flush: 'sync' })
-
-// 4. 组合多个选项
-// 可以同时使用多个选项来精确控制侦听器行为
-watch(() => user.name, (newVal, oldVal) => {
-  console.log(\`name变化: \${oldVal} -> \${newVal}\`)
+  console.log('DOM更新后执行')
 }, {
-  immediate: true,  // 立即执行
-  deep: true,       // 深度侦听（对getter函数通常不需要）
   flush: 'post'     // DOM更新后执行
 })
 
-// 5. 调试选项（开发环境）
+// 4. 调试选项（开发环境）
 // 用于调试侦听器的依赖追踪和触发过程
 watch(count, (newVal, oldVal) => {
   console.log('count变化')
@@ -1139,6 +1079,77 @@ setTimeout(() => {
   const asyncWatch = watch(count, callback)
   // 需要手动停止asyncWatch
 }, 1000)`
+
+// 主组件定义
+export default defineComponent({
+  name: 'WatchersDemo',
+  components: {
+    CommentBox,
+    DemoRunner,
+    CodeBlock,
+    BasicWatchDemo,
+    WatchSourcesDemo,
+    DeepWatchDemo,
+    WatchEffectDemo,
+    WatchOptionsDemo,
+    StopWatcherDemo
+  },
+  setup() {
+    // 为内联code-explanation数组创建计算属性
+    const basicWatchCodeExplanation = computed(() => [
+      { code: 'watch(source, callback)', explanation: '基础侦听器语法，侦听数据源变化' },
+      { code: 'watch(count, (newVal, oldVal) => {})', explanation: '侦听ref，回调接收新值和旧值' },
+      { code: 'watch(() => obj.prop, callback)', explanation: '侦听对象属性，使用getter函数' }
+    ])
+
+    const watchSourcesCodeExplanation = computed(() => [
+      { code: 'watch(refValue, callback)', explanation: '侦听ref值的变化' },
+      { code: 'watch(() => state.prop, callback)', explanation: '侦听reactive对象的属性' },
+      { code: 'watch([source1, source2], callback)', explanation: '侦听多个数据源' }
+    ])
+
+    const deepWatchCodeExplanation = computed(() => [
+      { code: 'watch(obj, callback, { deep: true })', explanation: '启用深度侦听' },
+      { code: 'watch(() => obj.nested.prop, callback)', explanation: '侦听特定嵌套属性' },
+      { code: 'watchEffect(() => { console.log(obj.nested.prop) })', explanation: 'watchEffect自动追踪依赖' }
+    ])
+
+    const watchEffectCodeExplanation = computed(() => [
+      { code: 'watchEffect(() => { console.log(count.value) })', explanation: 'watchEffect自动追踪count依赖' },
+      { code: 'const stop = watchEffect(callback)', explanation: '返回停止函数，可手动停止侦听' },
+      { code: 'watchEffect((onCleanup) => { onCleanup(() => {}) })', explanation: '使用清理函数' }
+    ])
+
+    const watchOptionsCodeExplanation = computed(() => [
+      { code: 'watch(source, callback, { immediate: true })', explanation: '创建时立即执行回调' },
+      { code: 'watch(source, callback, { deep: true })', explanation: '启用深度侦听' },
+      { code: 'watch(source, callback, { flush: \'post\' })', explanation: '在DOM更新后执行回调' }
+    ])
+
+    const stopWatcherCodeExplanation = computed(() => [
+      { code: 'const stop = watch(source, callback)', explanation: 'watch返回停止函数' },
+      { code: 'stop()', explanation: '调用停止函数停止侦听' },
+      { code: 'if (condition) stop()', explanation: '条件性停止侦听器' }
+    ])
+
+    return {
+      // 代码示例
+      basicWatchCode,
+      watchSourcesCode,
+      deepWatchCode,
+      watchEffectCode,
+      watchOptionsCode,
+      stopWatcherCode,
+      // 计算属性
+      basicWatchCodeExplanation,
+      watchSourcesCodeExplanation,
+      deepWatchCodeExplanation,
+      watchEffectCodeExplanation,
+      watchOptionsCodeExplanation,
+      stopWatcherCodeExplanation
+    }
+  }
+})
 </script>
 
 <style scoped>

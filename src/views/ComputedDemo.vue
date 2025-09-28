@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { defineComponent, ref, computed, reactive } from 'vue'
+import { defineComponent, ref, computed, reactive, nextTick } from 'vue'
 import CodeBlock from '@/components/CodeDemo/CodeBlock.vue'
 import DemoRunner from '@/components/CodeDemo/DemoRunner.vue'
 import CommentBox from '@/components/CodeDemo/CommentBox.vue'
@@ -260,27 +260,33 @@ const ComputedVsMethodDemo = defineComponent({
 
     // 计算属性版本 - 具有缓存机制
     const computedSum = computed(() => {
-      // 这个console.log用于演示缓存机制
-      // 只有当numbers或multiplier发生变化时才会执行
-      callCount.value.computed++
-      console.log('🔄 计算属性被调用:', callCount.value.computed)
-      
       // 计算数组中每个数字乘以multiplier后的总和
       // Vue会自动追踪numbers和multiplier的变化
       // 当依赖不变时，多次访问会使用缓存结果
-      return numbers.value.reduce((sum, num) => sum + num * multiplier.value, 0)
+      const result = numbers.value.reduce((sum, num) => sum + num * multiplier.value, 0)
+      
+      // 使用nextTick来避免在计算属性内部直接修改响应式数据
+      nextTick(() => {
+        callCount.value.computed++
+        console.log('🔄 计算属性被调用:', callCount.value.computed)
+      })
+      
+      return result
     })
 
     // 方法版本 - 每次调用都执行
     function methodSum() {
-      // 这个console.log用于演示方法的执行特点
-      // 每次调用方法都会执行这行代码
-      callCount.value.method++
-      console.log('⚡ 方法被调用:', callCount.value.method)
-      
       // 执行相同的计算逻辑
       // 但是每次调用都会重新计算，没有缓存机制
-      return numbers.value.reduce((sum, num) => sum + num * multiplier.value, 0)
+      const result = numbers.value.reduce((sum, num) => sum + num * multiplier.value, 0)
+      
+      // 使用nextTick来避免在渲染过程中修改响应式数据
+      nextTick(() => {
+        callCount.value.method++
+        console.log('⚡ 方法被调用:', callCount.value.method)
+      })
+      
+      return result
     }
 
     function addNumber() {
